@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faith Madzhara | AI Prompt Engineering Intern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+        color: #f8fafc;
+        margin: 0;
+        overflow-x: hidden;
+      }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+      .neon-blue-glow { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+      
+      /* Professional scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #050505; }
+      ::-webkit-scrollbar-thumb { 
+        background: #ff2d75; 
+        border-radius: 10px;
+        border: 2px solid #050505;
+      }
+      
+      canvas#matrix-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.35;
+        pointer-events: none;
+        filter: blur(0.4px);
+      }
+
+      .bg-data-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        background: 
+          radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.03) 0%, transparent 40%),
+          radial-gradient(circle at 90% 90%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
+        pointer-events: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.39.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div class="bg-data-overlay"></div>
+    <canvas id="matrix-bg"></canvas>
+    <div id="root"></div>
+    <script>
+      const canvas = document.getElementById('matrix-bg');
+      const ctx = canvas.getContext('2d');
+
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      // Morphing characters: Initials + Numbers
+      const charPool = 'LM0123456789'.split('');
+      const fontSize = 18;
+      
+      // Vertical drops
+      const columns = Math.ceil(width / fontSize);
+      const vDrops = [];
+      for (let i = 0; i < columns; i++) {
+        vDrops[i] = Math.random() * -100;
+      }
+
+      // Horizontal drops
+      const rows = Math.ceil(height / fontSize);
+      const hDrops = [];
+      for (let i = 0; i < rows; i++) {
+        hDrops[i] = Math.random() * -100;
+      }
+
+      function draw() {
+        // Subtle motion blur trail
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.12)';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.font = '600 ' + fontSize + 'px JetBrains Mono';
+        
+        // Draw vertical streams
+        for (let i = 0; i < vDrops.length; i++) {
+          const char = charPool[Math.floor(Math.random() * charPool.length)];
+          const isGlowing = Math.random() > 0.95;
+          
+          if (isGlowing) {
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ff2d75';
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 45, 117, 0.4)';
+          }
+          
+          ctx.fillText(char, i * fontSize, vDrops[i] * fontSize);
+
+          if (vDrops[i] * fontSize > height && Math.random() > 0.985) {
+            vDrops[i] = 0;
+          }
+          vDrops[i] += 0.4 + (Math.sin(i * 0.1) * 0.1);
+        }
+
+        // Draw horizontal streams
+        for (let j = 0; j < hDrops.length; j++) {
+          const char = charPool[Math.floor(Math.random() * charPool.length)];
+          const isGlowing = Math.random() > 0.98; // Less frequent for horizontal
+          
+          if (isGlowing) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff2d75';
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 45, 117, 0.15)'; // Fainter
+          }
+          
+          ctx.fillText(char, hDrops[j] * fontSize, j * fontSize);
+
+          if (hDrops[j] * fontSize > width && Math.random() > 0.99) {
+            hDrops[j] = 0;
+          }
+          hDrops[j] += 0.25;
+        }
+      }
+
+      function animate() {
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        // Re-calculate drops on resize to maintain coverage
+        vDrops.length = Math.ceil(width / fontSize);
+        for (let i = 0; i < vDrops.length; i++) {
+          if (vDrops[i] === undefined) vDrops[i] = Math.random() * -100;
+        }
+        hDrops.length = Math.ceil(height / fontSize);
+        for (let i = 0; i < hDrops.length; i++) {
+          if (hDrops[i] === undefined) hDrops[i] = Math.random() * -100;
+        }
+      });
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
